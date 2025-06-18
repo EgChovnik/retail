@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин товаров</title>
+    <title>Магазин одежды</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -21,112 +21,188 @@
         }
 
         .header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 24px;
             padding-bottom: 16px;
             border-bottom: 1px solid var(--tg-theme-hint-color, #e0e0e0);
         }
 
-        .header h1 {
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-right: 16px;
+        }
+
+        .header-text h1 {
             font-size: 24px;
             font-weight: 600;
             color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
-        .header p {
+        .header-text p {
             font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
             color: var(--tg-theme-hint-color, #999999);
         }
 
         .products-grid {
             display: grid;
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
             margin-bottom: 24px;
         }
 
-        .product-item {
+        .product-card {
             background-color: var(--tg-theme-secondary-bg-color, #f8f8f8);
             border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 16px;
+            overflow: hidden;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
         }
 
-        .product-item:hover {
-            background-color: var(--tg-theme-section-bg-color, #f0f0f0);
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .product-item.selected {
+        .product-card.selected {
             border-color: var(--tg-theme-button-color, #0088cc);
             background-color: var(--tg-theme-section-bg-color, #e3f2fd);
         }
 
-        .product-item.selected::after {
+        .product-card.selected::after {
             content: '✓';
             position: absolute;
             top: 12px;
             right: 12px;
             background-color: var(--tg-theme-button-color, #0088cc);
             color: var(--tg-theme-button-text-color, #ffffff);
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
+            z-index: 2;
         }
 
-        .product-emoji {
-            font-size: 32px;
-            margin-bottom: 8px;
-            display: block;
+        .product-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background-color: var(--tg-theme-hint-color, #f0f0f0);
+        }
+
+        .product-info {
+            padding: 16px;
         }
 
         .product-name {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 4px;
-        }
-
-        .product-description {
-            font-size: 13px;
-            color: var(--tg-theme-hint-color, #999999);
             margin-bottom: 8px;
             line-height: 1.3;
         }
 
+        .product-description {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
         .product-price {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--tg-theme-button-color, #0088cc);
+        }
+
+        .favorite-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+
+        .favorite-btn:hover {
+            background-color: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-theme-destructive-text-color, #ff3b30);
         }
 
         .bottom-spacer {
             height: 100px;
         }
+
+        @media (max-width: 480px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-right: 0;
+                margin-bottom: 12px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Наш магазин</h1>
-        <p>Выберите товары для заказа</p>
+        <img id="logo" class="logo" alt="Логотип магазина">
+        <div class="header-text">
+            <h1>Магазин одежды</h1>
+            <p>Стильная одежда для вас</p>
+        </div>
     </div>
 
-    <div class="products-grid" id="productsGrid">
+    <div id="loading" class="loading">
+        Загрузка товаров...
+    </div>
+
+    <div id="error" class="error" style="display: none;">
+        Ошибка загрузки товаров. Попробуйте позже.
+    </div>
+
+    <div class="products-grid" id="productsGrid" style="display: none;">
         <!-- Товары будут добавлены через JavaScript -->
     </div>
 
     <div class="bottom-spacer"></div>
-
-    <div class="product-item">
-        <iframe src="https://www.youtube.com/embed/toyY9NScPMc?si=poWTJvFDpCisZPzs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-    </div>
 
     <script>
         // Инициализация Telegram WebApp
@@ -134,40 +210,133 @@
         tg.expand();
         tg.ready();
 
-        // Данные товаров
-        const products = [
-            { id: 1, name: 'Смартфон iPhone', description: 'Последняя модель с отличной камерой', price: 89990 },
-            { id: 2, name: 'Ноутбук MacBook', description: 'Мощный ноутбук для работы и творчества', price: 129990 },
-            { id: 3, name: 'Наушники AirPods', description: 'Беспроводные наушники с шумоподавлением', price: 24990 },
-            { id: 4, name: 'Умные часы', description: 'Следите за здоровьем и уведомлениями', price: 34990 },
-            { id: 5, name: 'Планшет iPad', description: 'Идеален для работы и развлечений', price: 54990 },
-            { id: 6, name: 'Игровая консоль', description: 'Новейшая консоль для игр', price: 49990 },
-            { id: 7, name: 'Фотоаппарат', description: 'Профессиональная камера для фото', price: 79990 },
-            { id: 8, name: 'Умная колонка', description: 'Голосовой помощник с отличным звуком', price: 12990 },
-            { id: 9, name: 'Электросамокат', description: 'Экологичный транспорт для города', price: 39990 },
-            { id: 10, name: 'Кофемашина', description: 'Автоматическая кофемашина для дома', price: 29990 }
-        ];
+        // Конфигурация GitHub API
+        const GITHUB_CONFIG = {
+            owner: 'EgChovnik',  // Замените на ваш GitHub username
+            repo: 'retail',         // Замените на название репозитория
+            clothesPath: 'clothes',         // Путь к папке с одеждой
+            logoPath: 'logo/logo.jpg'       // Путь к логотипу
+        };
 
         let selectedProducts = [];
+        let allProducts = [];
 
-        // Создание элементов товаров
-        function createProductElements() {
+        // Функция для получения данных из GitHub API
+        async function fetchFromGitHub(path) {
+            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+
+        // Функция для декодирования base64 контента
+        function decodeBase64(content) {
+            return atob(content.replace(/\s/g, ''));
+        }
+
+        // Загрузка логотипа
+        async function loadLogo() {
+            try {
+                const logoData = await fetchFromGitHub(GITHUB_CONFIG.logoPath);
+                const logoUrl = `data:image/jpeg;base64,${logoData.content}`;
+                document.getElementById('logo').src = logoUrl;
+            } catch (error) {
+                console.error('Ошибка загрузки логотипа:', error);
+                // Скрываем логотип если не удалось загрузить
+                document.getElementById('logo').style.display = 'none';
+            }
+        }
+
+        // Загрузка товаров
+        async function loadProducts() {
+            try {
+                const clothesData = await fetchFromGitHub(GITHUB_CONFIG.clothesPath);
+                
+                // Фильтруем только папки (товары)
+                const productFolders = clothesData.filter(item => item.type === 'dir');
+                
+                for (const folder of productFolders) {
+                    try {
+                        const productData = await fetchFromGitHub(`${GITHUB_CONFIG.clothesPath}/${folder.name}`);
+                        
+                        // Ищем изображение и описание
+                        const imageFile = productData.find(file => file.name.endsWith('.jpg'));
+                        const descFile = productData.find(file => file.name.endsWith('.txt'));
+                        
+                        if (imageFile && descFile) {
+                            const descData = await fetchFromGitHub(`${GITHUB_CONFIG.clothesPath}/${folder.name}/${descFile.name}`);
+                            const description = decodeBase64(descData.content);
+                            
+                            // Парсим описание (предполагаем формат: название|описание|цена)
+                            const [name, desc, priceStr] = description.split('|');
+                            const price = parseInt(priceStr) || 0;
+                            
+                            const product = {
+                                id: folder.name,
+                                name: name?.trim() || folder.name,
+                                description: desc?.trim() || 'Описание отсутствует',
+                                price: price,
+                                imageUrl: `data:image/jpeg;base64,${imageFile.content || ''}`
+                            };
+                            
+                            // Если контент изображения не загружен, загружаем отдельно
+                            if (!imageFile.content) {
+                                const imageData = await fetchFromGitHub(`${GITHUB_CONFIG.clothesPath}/${folder.name}/${imageFile.name}`);
+                                product.imageUrl = `data:image/jpeg;base64,${imageData.content}`;
+                            }
+                            
+                            allProducts.push(product);
+                        }
+                    } catch (error) {
+                        console.error(`Ошибка загрузки товара ${folder.name}:`, error);
+                    }
+                }
+                
+                if (allProducts.length === 0) {
+                    throw new Error('Товары не найдены');
+                }
+                
+                renderProducts();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки товаров:', error);
+                showError();
+            }
+        }
+
+        // Отображение товаров
+        function renderProducts() {
             const grid = document.getElementById('productsGrid');
+            const loading = document.getElementById('loading');
             
-            products.forEach(product => {
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+            
+            allProducts.forEach(product => {
                 const productElement = document.createElement('div');
-                productElement.className = 'product-item';
+                productElement.className = 'product-card';
                 productElement.dataset.productId = product.id;
                 
                 productElement.innerHTML = `
-                    <div class="product-name">${product.name}</div>
-                    <div class="product-description">${product.description}</div>
-                    <div class="product-price">${product.price.toLocaleString('ru-RU')} ₽</div>
+                    <img class="product-image" src="${product.imageUrl}" alt="${product.name}" loading="lazy">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-description">${product.description}</div>
+                        <div class="product-price">${product.price.toLocaleString('ru-RU')} руб.</div>
+                    </div>
                 `;
                 
                 productElement.addEventListener('click', () => toggleProduct(product));
                 grid.appendChild(productElement);
             });
+        }
+
+        // Показать ошибку
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
         }
 
         // Переключение выбора товара
@@ -208,6 +377,7 @@
             const dataToSend = selectedProducts.map(product => ({
                 id: product.id,
                 name: product.name,
+                description: product.description,
                 price: product.price
             }));
             
@@ -215,12 +385,14 @@
         }
 
         // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            createProductElements();
-            
+        document.addEventListener('DOMContentLoaded', async () => {
             // Настройка главной кнопки Telegram
             tg.MainButton.setText('Отправить заказ');
             tg.MainButton.onClick(sendDataToBot);
+            
+            // Загружаем логотип и товары
+            await loadLogo();
+            await loadProducts();
         });
     </script>
 </body>
