@@ -30,10 +30,10 @@
         }
 
         .logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            object-fit: cover;
+            height: 40px;  /* Изменено с width/height 60px */
+            width: auto;   /* Автоматическая ширина для горизонтального логотипа */
+            border-radius: 8px;  /* Уменьшен радиус */
+            object-fit: contain;  /* Изменено с cover на contain */
             margin-right: 16px;
         }
 
@@ -102,7 +102,7 @@
 
         .product-image {
             width: 100%;
-            height: 300px;
+            height: 400px;  /* Увеличено с 300px до 400px */
             object-fit: cover;
             background-color: var(--tg-theme-hint-color, #f0f0f0);
         }
@@ -212,10 +212,10 @@
 
         // Конфигурация GitHub API
         const GITHUB_CONFIG = {
-            owner: 'EgChovnik',  // Замените на ваш GitHub username
-            repo: 'retail',         // Замените на название репозитория
-            clothesPath: 'clothes',         // Путь к папке с одеждой
-            logoPath: 'logo/logo.jpg'       // Путь к логотипу
+            owner: 'EgChovnik',
+            repo: 'retail',
+            clothesPath: 'clothes',
+            logoPath: 'logo/logo.svg'  // Изменено с logo.jpg на logo.svg
         };
 
         let selectedProducts = [];
@@ -231,20 +231,24 @@
             return await response.json();
         }
 
-        // Функция для декодирования base64 контента
+        // Функция для декодирования base64 контента с поддержкой UTF-8
         function decodeBase64(content) {
-            return atob(content.replace(/\s/g, ''));
+            const binaryString = atob(content.replace(/\s/g, ''));
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
         }
 
         // Загрузка логотипа
         async function loadLogo() {
             try {
                 const logoData = await fetchFromGitHub(GITHUB_CONFIG.logoPath);
-                const logoUrl = `data:image/jpeg;base64,${logoData.content}`;
+                const logoUrl = `data:image/svg+xml;base64,${logoData.content}`;
                 document.getElementById('logo').src = logoUrl;
             } catch (error) {
                 console.error('Ошибка загрузки логотипа:', error);
-                // Скрываем логотип если не удалось загрузить
                 document.getElementById('logo').style.display = 'none';
             }
         }
@@ -363,7 +367,7 @@
         // Обновление главной кнопки при изменении выбора
         function updateMainButton() {
             if (selectedProducts.length > 0) {
-                tg.MainButton.setText(`Отправить заказ (${selectedProducts.length})`);
+                tg.MainButton.setText(`Оформить заказ (${selectedProducts.length})`);
                 tg.MainButton.show();
             } else {
                 tg.MainButton.hide();
