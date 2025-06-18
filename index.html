@@ -207,12 +207,12 @@
         // Инициализация Octokit
         function initOctokit() {
             if (GITHUB_CONFIG.token && GITHUB_CONFIG.token !== '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') {
-                octokit = new Octokit.Octokit({
+                octokit = new Octokit({
                     auth: GITHUB_CONFIG.token,
                     userAgent: 'TelegramWebApp v1.0.0'
                 });
             } else {
-                octokit = new Octokit.Octokit({
+                octokit = new Octokit({
                     userAgent: 'TelegramWebApp v1.0.0'
                 });
             }
