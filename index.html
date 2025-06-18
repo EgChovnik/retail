@@ -107,45 +107,6 @@
             color: var(--tg-theme-button-color, #0088cc);
         }
 
-        .send-button {
-            position: fixed;
-            bottom: 16px;
-            left: 16px;
-            right: 16px;
-            background-color: var(--tg-theme-button-color, #0088cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            transform: translateY(100px);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .send-button.visible {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .send-button:hover {
-            background-color: var(--tg-theme-button-color, #0077b3);
-        }
-
-        .selected-count {
-            background-color: var(--tg-theme-button-text-color, #ffffff);
-            color: var(--tg-theme-button-color, #0088cc);
-            border-radius: 20px;
-            padding: 4px 8px;
-            font-size: 14px;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-
         .bottom-spacer {
             height: 100px;
         }
@@ -153,7 +114,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🛒 Наш магазин</h1>
+        <h1>Наш магазин</h1>
         <p>Выберите товары для заказа</p>
     </div>
 
@@ -163,11 +124,6 @@
 
     <div class="bottom-spacer"></div>
 
-    <button class="send-button" id="sendButton">
-        Отправить боту
-        <span class="selected-count" id="selectedCount">0</span>
-    </button>
-
     <script>
         // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
@@ -176,16 +132,16 @@
 
         // Данные товаров
         const products = [
-            { id: 1, name: 'Смартфон iPhone', emoji: '📱', description: 'Последняя модель с отличной камерой', price: 89990 },
-            { id: 2, name: 'Ноутбук MacBook', emoji: '💻', description: 'Мощный ноутбук для работы и творчества', price: 129990 },
-            { id: 3, name: 'Наушники AirPods', emoji: '🎧', description: 'Беспроводные наушники с шумоподавлением', price: 24990 },
-            { id: 4, name: 'Умные часы', emoji: '⌚', description: 'Следите за здоровьем и уведомлениями', price: 34990 },
-            { id: 5, name: 'Планшет iPad', emoji: '📱', description: 'Идеален для работы и развлечений', price: 54990 },
-            { id: 6, name: 'Игровая консоль', emoji: '🎮', description: 'Новейшая консоль для игр', price: 49990 },
-            { id: 7, name: 'Фотоаппарат', emoji: '📷', description: 'Профессиональная камера для фото', price: 79990 },
-            { id: 8, name: 'Умная колонка', emoji: '🔊', description: 'Голосовой помощник с отличным звуком', price: 12990 },
-            { id: 9, name: 'Электросамокат', emoji: '🛴', description: 'Экологичный транспорт для города', price: 39990 },
-            { id: 10, name: 'Кофемашина', emoji: '☕', description: 'Автоматическая кофемашина для дома', price: 29990 }
+            { id: 1, name: 'Смартфон iPhone', description: 'Последняя модель с отличной камерой', price: 89990 },
+            { id: 2, name: 'Ноутбук MacBook', description: 'Мощный ноутбук для работы и творчества', price: 129990 },
+            { id: 3, name: 'Наушники AirPods', description: 'Беспроводные наушники с шумоподавлением', price: 24990 },
+            { id: 4, name: 'Умные часы', description: 'Следите за здоровьем и уведомлениями', price: 34990 },
+            { id: 5, name: 'Планшет iPad', description: 'Идеален для работы и развлечений', price: 54990 },
+            { id: 6, name: 'Игровая консоль', description: 'Новейшая консоль для игр', price: 49990 },
+            { id: 7, name: 'Фотоаппарат', description: 'Профессиональная камера для фото', price: 79990 },
+            { id: 8, name: 'Умная колонка', description: 'Голосовой помощник с отличным звуком', price: 12990 },
+            { id: 9, name: 'Электросамокат', description: 'Экологичный транспорт для города', price: 39990 },
+            { id: 10, name: 'Кофемашина', description: 'Автоматическая кофемашина для дома', price: 29990 }
         ];
 
         let selectedProducts = [];
@@ -200,7 +156,6 @@
                 productElement.dataset.productId = product.id;
                 
                 productElement.innerHTML = `
-                    <span class="product-emoji">${product.emoji}</span>
                     <div class="product-name">${product.name}</div>
                     <div class="product-description">${product.description}</div>
                     <div class="product-price">${product.price.toLocaleString('ru-RU')} ₽</div>
@@ -224,52 +179,13 @@
                 productElement.classList.add('selected');
             }
             
-            updateSendButton();
+            updateMainButton();
             
             // Вибрация при выборе (если поддерживается)
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
         }
-
-        // Обновление кнопки отправки
-        function updateSendButton() {
-            const sendButton = document.getElementById('sendButton');
-            const selectedCount = document.getElementById('selectedCount');
-            
-            selectedCount.textContent = selectedProducts.length;
-            
-            if (selectedProducts.length > 0) {
-                sendButton.classList.add('visible');
-            } else {
-                sendButton.classList.remove('visible');
-            }
-        }
-
-        // Отправка данных боту
-        function sendDataToBot() {
-            if (selectedProducts.length === 0) return;
-            
-            const dataToSend = selectedProducts.map(product => ({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                emoji: product.emoji
-            }));
-            
-            tg.sendData(JSON.stringify(dataToSend));
-        }
-
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            createProductElements();
-            
-            document.getElementById('sendButton').addEventListener('click', sendDataToBot);
-            
-            // Настройка главной кнопки Telegram
-            tg.MainButton.setText('Отправить заказ');
-            tg.MainButton.onClick(sendDataToBot);
-        });
 
         // Обновление главной кнопки при изменении выбора
         function updateMainButton() {
@@ -281,12 +197,27 @@
             }
         }
 
-        // Переопределяем updateSendButton для синхронизации с главной кнопкой
-        const originalUpdateSendButton = updateSendButton;
-        updateSendButton = function() {
-            originalUpdateSendButton();
-            updateMainButton();
-        };
+        // Отправка данных боту
+        function sendDataToBot() {
+            if (selectedProducts.length === 0) return;
+            
+            const dataToSend = selectedProducts.map(product => ({
+                id: product.id,
+                name: product.name,
+                price: product.price
+            }));
+            
+            tg.sendData(JSON.stringify(dataToSend));
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            createProductElements();
+            
+            // Настройка главной кнопки Telegram
+            tg.MainButton.setText('Отправить заказ');
+            tg.MainButton.onClick(sendDataToBot);
+        });
     </script>
 </body>
 </html>
