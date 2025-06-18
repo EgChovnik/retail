@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B A T N I Q U E ©</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключаем Octokit -->
-    <script src="https://cdn.skypack.dev/@octokit/rest"></script>
     <style>
-        /* Все стили остаются такими же */
         * {
             margin: 0;
             padding: 0;
@@ -191,113 +188,80 @@
         tg.expand();
         tg.ready();
 
-        // Конфигурация GitHub API
-        const GITHUB_CONFIG = {
-            owner: 'EgChovnik',
-            repo: 'retail',
-            token: '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',  // Personal Access Token
-            clothesPath: 'clothes',
-            logoPath: 'logo/logo.svg'
+        // Конфигурация для прямой загрузки файлов
+        const CONFIG = {
+            // Базовый URL для GitHub Pages (замените на ваш)
+            baseUrl: 'https://egchovnik.github.io/retail',
+            
+            // Или можно использовать относительные пути если файлы в том же репозитории
+            // baseUrl: '.',
+            
+            // Список товаров (нужно указать вручную)
+            products: [
+                'item1',
+                'item2', 
+                'item3',
+                'item4',
+                'item5',
+                'item6',
+                'item7', 
+                'item8',
+                'item9',
+                'item10',
+                'item11'
+                // Добавьте названия папок ваших товаров
+            ]
         };
 
         let selectedProducts = [];
         let allProducts = [];
-        let octokit;
 
-        // Инициализация Octokit
-        function initOctokit() {
-            if (GITHUB_CONFIG.token && GITHUB_CONFIG.token !== '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') {
-                octokit = new Octokit({
-                    auth: GITHUB_CONFIG.token,
-                    userAgent: 'TelegramWebApp v1.0.0'
-                });
-            } else {
-                octokit = new Octokit({
-                    userAgent: 'TelegramWebApp v1.0.0'
-                });
+        // Функция для загрузки текстового файла
+        async function loadTextFile(url) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        }
-
-        // Функция для получения данных из GitHub API через Octokit
-        async function fetchFromGitHub(path) {
-            try {
-                const response = await octokit.rest.repos.getContent({
-                    owner: GITHUB_CONFIG.owner,
-                    repo: GITHUB_CONFIG.repo,
-                    path: path
-                });
-                return response.data;
-            } catch (error) {
-                console.error(`Ошибка получения ${path}:`, error);
-                throw error;
-            }
-        }
-
-        // Функция для декодирования base64 контента с поддержкой UTF-8
-        function decodeBase64(content) {
-            const binaryString = atob(content.replace(/\s/g, ''));
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return new TextDecoder('utf-8').decode(bytes);
+            return await response.text();
         }
 
         // Загрузка логотипа
-        async function loadLogo() {
-            try {
-                const logoData = await fetchFromGitHub(GITHUB_CONFIG.logoPath);
-                const logoUrl = `data:image/svg+xml;base64,${logoData.content}`;
-                document.getElementById('logo').src = logoUrl;
-            } catch (error) {
-                console.error('Ошибка загрузки логотипа:', error);
-                document.getElementById('logo').style.display = 'none';
-            }
+        function loadLogo() {
+            const logoUrl = `${CONFIG.baseUrl}/logo/logo.svg`;
+            const logoImg = document.getElementById('logo');
+            
+            logoImg.src = logoUrl;
+            logoImg.onerror = () => {
+                console.error('Ошибка загрузки логотипа');
+                logoImg.style.display = 'none';
+            };
         }
 
         // Загрузка товаров
         async function loadProducts() {
             try {
-                const clothesData = await fetchFromGitHub(GITHUB_CONFIG.clothesPath);
-                
-                // Фильтруем только папки (товары)
-                const productFolders = Array.isArray(clothesData) 
-                    ? clothesData.filter(item => item.type === 'dir')
-                    : [];
-                
-                // Загружаем товары параллельно для ускорения
-                const productPromises = productFolders.map(async (folder) => {
+                // Загружаем все товары параллельно
+                const productPromises = CONFIG.products.map(async (productId) => {
                     try {
-                        const productData = await fetchFromGitHub(`${GITHUB_CONFIG.clothesPath}/${folder.name}`);
+                        const imageUrl = `${CONFIG.baseUrl}/clothes/${productId}/${productId}.jpg`;
+                        const descUrl = `${CONFIG.baseUrl}/clothes/${productId}/desc.txt`;
                         
-                        // Ищем изображение и описание
-                        const imageFile = productData.find(file => file.name.endsWith('.jpg'));
-                        const descFile = productData.find(file => file.name.endsWith('.txt'));
+                        // Загружаем описание
+                        const description = await loadTextFile(descUrl);
                         
-                        if (imageFile && descFile) {
-                            const [descData, imageData] = await Promise.all([
-                                fetchFromGitHub(`${GITHUB_CONFIG.clothesPath}/${folder.name}/${descFile.name}`),
-                                imageFile.content ? Promise.resolve(imageFile) : 
-                                fetchFromGitHub(`${GITHUB_CONFIG.clothesPath}/${folder.name}/${imageFile.name}`)
-                            ]);
-                            
-                            const description = decodeBase64(descData.content);
-                            
-                            // Парсим описание (предполагаем формат: название|описание|цена)
-                            const [name, desc, priceStr] = description.split('|');
-                            const price = parseInt(priceStr) || 0;
-                            
-                            return {
-                                id: folder.name,
-                                name: name?.trim() || folder.name,
-                                description: desc?.trim() || 'Описание отсутствует',
-                                price: price,
-                                imageUrl: `data:image/jpeg;base64,${imageData.content}`
-                            };
-                        }
-                        return null;
+                        // Парсим описание (формат: название|описание|цена)
+                        const [name, desc, priceStr] = description.split('|');
+                        const price = parseInt(priceStr) || 0;
+                        
+                        return {
+                            id: productId,
+                            name: name?.trim() || productId,
+                            description: desc?.trim() || 'Описание отсутствует',
+                            price: price,
+                            imageUrl: imageUrl
+                        };
                     } catch (error) {
-                        console.error(`Ошибка загрузки товара ${folder.name}:`, error);
+                        console.error(`Ошибка загрузки товара ${productId}:`, error);
                         return null;
                     }
                 });
@@ -338,6 +302,12 @@
                         <div class="product-price">${product.price.toLocaleString('ru-RU')} руб.</div>
                     </div>
                 `;
+                
+                // Обработка ошибки загрузки изображения
+                const img = productElement.querySelector('.product-image');
+                img.onerror = () => {
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';
+                };
                 
                 productElement.addEventListener('click', () => toggleProduct(product));
                 grid.appendChild(productElement);
@@ -397,15 +367,12 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', async () => {
-            // Инициализируем Octokit
-            initOctokit();
-            
             // Настройка главной кнопки Telegram
             tg.MainButton.setText('Оформить заказ');
             tg.MainButton.onClick(sendDataToBot);
             
             // Загружаем логотип и товары
-            await loadLogo();
+            loadLogo();
             await loadProducts();
         });
     </script>
