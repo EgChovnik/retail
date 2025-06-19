@@ -139,36 +139,76 @@ body {
 .categories-grid {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 24px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px 0;
 }
 
 .category-item {
-  background-color: var(--tg-theme-secondary-bg-color);
-  margin-bottom: 8px;
-  padding: 16px 20px;
-  border-radius: 12px;
+  position: relative;
+  background: transparent;
+  border: 2px solid var(--tg-theme-hint-color);
+  border-radius: 16px;
+  padding: 20px 24px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 80%;
+}
+
+.category-item.align-left {
+  align-self: flex-start;
+  text-align: left;
+}
+
+.category-item.align-right {
+  align-self: flex-end;
+  text-align: right;
 }
 
 .category-item:hover {
-  background-color: var(--tg-theme-section-bg-color);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--tg-theme-button-color);
+  background-color: rgba(0, 136, 204, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.15);
 }
 
 .category-item:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 136, 204, 0.1);
 }
 
 .category-item span {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
   color: var(--tg-theme-text-color);
   text-transform: lowercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  display: inline-block;
+}
+
+.category-item span::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--tg-theme-hint-color);
+  transition: background-color 0.3s ease;
+}
+
+.category-item:hover span::after {
+  background-color: var(--tg-theme-button-color);
+}
+
+/* Удаляем старые стили для иконок и стрелок */
+.category-content,
+.category-icon,
+.category-text,
+.category-arrow {
+  display: none !important;
 }
 
 /* Products */
@@ -481,7 +521,7 @@ body {
   }
 
   .category-item span {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .product-image-container {
@@ -507,11 +547,17 @@ body {
   }
 
   .category-item {
-    padding: 16px 0;
+    padding: 16px 20px;
   }
 
   .category-item span {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .category-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
   }
 }
 
