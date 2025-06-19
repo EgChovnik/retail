@@ -73,10 +73,9 @@ function setupEventListeners() {
     })
   })
 
-  // Cart button (for future cart page)
+  // Cart button
   cartBtn.addEventListener("click", () => {
-    // Future: show cart page
-    console.log("Cart clicked", cart)
+    showCartPage()
   })
 }
 
@@ -105,6 +104,10 @@ function showPage(page) {
       productDetailPage.style.display = "block"
       backBtn.style.display = "block"
       break
+    case "cart":
+      document.getElementById("cartPage").style.display = "block"
+      backBtn.style.display = "block"
+      break
   }
 
   currentPage = page
@@ -117,6 +120,9 @@ function handleBackButton() {
       break
     case "product-detail":
       showCategory(currentCategory)
+      break
+    case "cart":
+      showPage("categories")
       break
   }
 }
@@ -312,23 +318,80 @@ function createImageNavigation(images, productId) {
 
 function setupImageNavigation(card, product) {
   const image = card.querySelector(".product-image")
+  const imageContainer = card.querySelector(".product-image-container")
   const dots = card.querySelectorAll(".image-dot")
+  let currentImageIndex = 0
 
+  // Touch events for swipe
+  let startX = 0
+  let startY = 0
+
+  imageContainer.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX
+    startY = e.touches[0].clientY
+  })
+
+  imageContainer.addEventListener("touchend", (e) => {
+    if (!startX || !startY) return
+
+    const endX = e.changedTouches[0].clientX
+    const endY = e.changedTouches[0].clientY
+    const diffX = startX - endX
+    const diffY = startY - endY
+
+    // Check if horizontal swipe is more significant than vertical
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      if (diffX > 0 && currentImageIndex < product.images.length - 1) {
+        // Swipe left - next image
+        currentImageIndex++
+        updateImage()
+      } else if (diffX < 0 && currentImageIndex > 0) {
+        // Swipe right - previous image
+        currentImageIndex--
+        updateImage()
+      }
+    }
+
+    startX = 0
+    startY = 0
+  })
+
+  // Click on edges for navigation
+  imageContainer.addEventListener("click", (e) => {
+    if (e.target.closest(".favorite-btn") || e.target.closest(".image-nav")) return
+
+    const rect = imageContainer.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const containerWidth = rect.width
+
+    if (clickX < containerWidth * 0.3 && currentImageIndex > 0) {
+      // Click on left side - previous image
+      currentImageIndex--
+      updateImage()
+    } else if (clickX > containerWidth * 0.7 && currentImageIndex < product.images.length - 1) {
+      // Click on right side - next image
+      currentImageIndex++
+      updateImage()
+    }
+  })
+
+  function updateImage() {
+    image.src = product.images[currentImageIndex]
+    dots.forEach((d, i) => {
+      d.classList.toggle("active", i === currentImageIndex)
+    })
+
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred("light")
+    }
+  }
+
+  // Existing dot navigation
   dots.forEach((dot, index) => {
     dot.addEventListener("click", (e) => {
       e.stopPropagation()
-
-      // Update image
-      image.src = product.images[index]
-
-      // Update dots
-      dots.forEach((d) => d.classList.remove("active"))
-      dot.classList.add("active")
-
-      // Haptic feedback
-      if (tg?.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred("light")
-      }
+      currentImageIndex = index
+      updateImage()
     })
   })
 }
@@ -381,14 +444,25 @@ function showProductDetail(product) {
   // Setup images
   const imagesContainer = document.getElementById("productImages")
   imagesContainer.innerHTML = ""
+  const currentDetailImageIndex = 0
 
   product.images.forEach((image, index) => {
     const img = document.createElement("img")
     img.className = `product-detail-image ${index === 0 ? "active" : ""}`
     img.src = image
     img.alt = product.name
+    img.loading = "lazy"
+
+    // Add error handling for images
+    img.onerror = () => {
+      img.src = "/placeholder.svg?height=500&width=400"
+    }
+
     imagesContainer.appendChild(img)
   })
+
+  // Setup touch navigation for detail images
+  setupDetailImageNavigation(product)
 
   // Setup image dots if multiple images
   const imageDots = document.getElementById("imageDots")
@@ -416,6 +490,57 @@ function showProductDetail(product) {
   addToCartBtn.onclick = () => toggleProductInCartFromDetail(product.id)
 
   showPage("product-detail")
+}
+
+function setupDetailImageNavigation(product) {
+  const imagesContainer = document.getElementById("productImages")
+  let currentDetailImageIndex = 0
+
+  // Touch events for swipe
+  let startX = 0
+  let startY = 0
+
+  imagesContainer.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX
+    startY = e.touches[0].clientY
+  })
+
+  imagesContainer.addEventListener("touchend", (e) => {
+    if (!startX || !startY) return
+
+    const endX = e.changedTouches[0].clientX
+    const endY = e.changedTouches[0].clientY
+    const diffX = startX - endX
+    const diffY = startY - endY
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      if (diffX > 0 && currentDetailImageIndex < product.images.length - 1) {
+        currentDetailImageIndex++
+        showProductImage(currentDetailImageIndex)
+      } else if (diffX < 0 && currentDetailImageIndex > 0) {
+        currentDetailImageIndex--
+        showProductImage(currentDetailImageIndex)
+      }
+    }
+
+    startX = 0
+    startY = 0
+  })
+
+  // Click on edges
+  imagesContainer.addEventListener("click", (e) => {
+    const rect = imagesContainer.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const containerWidth = rect.width
+
+    if (clickX < containerWidth * 0.3 && currentDetailImageIndex > 0) {
+      currentDetailImageIndex--
+      showProductImage(currentDetailImageIndex)
+    } else if (clickX > containerWidth * 0.7 && currentDetailImageIndex < product.images.length - 1) {
+      currentDetailImageIndex++
+      showProductImage(currentDetailImageIndex)
+    }
+  })
 }
 
 function showProductImage(index) {
@@ -502,6 +627,71 @@ function showError() {
   hideLoading()
 }
 
+function showCartPage() {
+  renderCartItems()
+  showPage("cart")
+}
+
+function renderCartItems() {
+  const cartItems = document.getElementById("cartItems")
+  const cartEmpty = document.getElementById("cartEmpty")
+
+  if (cart.length === 0) {
+    cartItems.style.display = "none"
+    cartEmpty.style.display = "block"
+    return
+  }
+
+  cartItems.style.display = "flex"
+  cartEmpty.style.display = "none"
+  cartItems.innerHTML = ""
+
+  cart.forEach((product) => {
+    const cartItem = document.createElement("div")
+    cartItem.className = "cart-item"
+    cartItem.innerHTML = `
+      <img class="cart-item-image" src="${product.images[0]}" alt="${product.name}">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${product.name}</div>
+        <div class="cart-item-price">${product.price.toLocaleString("ru-RU")} руб.</div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart('${product.id}')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    `
+    cartItems.appendChild(cartItem)
+  })
+}
+
+function removeFromCart(productId) {
+  const index = cart.findIndex((item) => item.id === productId)
+  if (index >= 0) {
+    cart.splice(index, 1)
+    updateCartUI()
+    updateMainButton()
+    renderCartItems()
+
+    // Update product card if visible
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`)
+    if (productCard) {
+      productCard.classList.remove("selected")
+      const favoriteBtn = productCard.querySelector(".favorite-btn")
+      const heartIcon = favoriteBtn.querySelector("svg")
+      favoriteBtn.classList.remove("active")
+      heartIcon.setAttribute("fill", "none")
+    }
+
+    // Haptic feedback
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred("light")
+    }
+  }
+}
+
 // Global functions for inline event handlers
 window.toggleProductInCart = toggleProductInCart
 window.showProductImage = showProductImage
+window.removeFromCart = removeFromCart
