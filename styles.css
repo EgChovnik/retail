@@ -192,7 +192,7 @@ body {
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   position: relative;
 }
 
@@ -219,7 +219,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
   background-color: var(--tg-theme-hint-color);
 }
 
@@ -313,34 +313,92 @@ body {
   margin: 0 auto;
 }
 
-.product-images {
+.product-images-container {
   position: relative;
   margin-bottom: 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.product-images-slider {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
 }
 
 .product-detail-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 500px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 16px;
-  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
   background-color: var(--tg-theme-hint-color);
-  touch-action: pan-y;
+}
+
+.product-detail-image.active {
+  opacity: 1;
 }
 
 .product-detail-image:not([src]),
-.product-detail-image[src=""] {
+.product-detail-image[src=""],
+.product-detail-image[src*="placeholder"] {
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='%23f0f0f0'/%3e%3ctext x='50%25' y='50%25' font-size='16' text-anchor='middle' dy='.3em' fill='%23999'%3eЗагрузка изображения...%3c/text%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
 }
 
-.image-dots {
+.image-counter {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 3;
+}
+
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 3;
+}
+
+.nav-arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.nav-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.nav-arrow-left {
+  left: 16px;
+}
+
+.nav-arrow-right {
+  right: 16px;
 }
 
 .add-to-cart-btn {
@@ -364,6 +422,11 @@ body {
 
 .add-to-cart-btn:active {
   transform: translateY(0);
+}
+
+/* Удаляем старые стили для image-dots */
+.image-dots {
+  display: none !important;
 }
 
 /* Loading & Error */

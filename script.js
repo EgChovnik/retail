@@ -440,43 +440,132 @@ function findProductById(productId) {
 
 function showProductDetail(product) {
   currentProduct = product
+  let currentImageIndex = 0
 
-  // Setup images
-  const imagesContainer = document.getElementById("productImages")
-  imagesContainer.innerHTML = ""
-  const currentDetailImageIndex = 0
+  // Setup images container
+  const imagesSlider = document.getElementById("productImagesSlider")
+  const imageCounter = document.getElementById("imageCounter")
+  const prevBtn = document.getElementById("prevImageBtn")
+  const nextBtn = document.getElementById("nextImageBtn")
 
-  product.images.forEach((image, index) => {
+  // Clear previous images
+  imagesSlider.innerHTML = ""
+
+  // Create and add images
+  product.images.forEach((imageUrl, index) => {
     const img = document.createElement("img")
     img.className = `product-detail-image ${index === 0 ? "active" : ""}`
-    img.src = image
+    img.src = imageUrl
     img.alt = product.name
-    img.loading = "lazy"
+    img.loading = index === 0 ? "eager" : "lazy"
 
-    // Add error handling for images
+    // Add error handling
     img.onerror = () => {
+      console.error(`Failed to load image: ${imageUrl}`)
       img.src = "/placeholder.svg?height=500&width=400"
     }
 
-    imagesContainer.appendChild(img)
+    // Add load event for debugging
+    img.onload = () => {
+      console.log(`Image loaded successfully: ${imageUrl}`)
+    }
+
+    imagesSlider.appendChild(img)
   })
 
-  // Setup touch navigation for detail images
-  setupDetailImageNavigation(product)
+  // Update counter and navigation
+  function updateImageDisplay() {
+    const images = imagesSlider.querySelectorAll(".product-detail-image")
+    images.forEach((img, index) => {
+      img.classList.toggle("active", index === currentImageIndex)
+    })
 
-  // Setup image dots if multiple images
-  const imageDots = document.getElementById("imageDots")
-  if (product.images.length > 1) {
-    imageDots.style.display = "flex"
-    imageDots.innerHTML = product.images
-      .map(
-        (_, index) =>
-          `<div class="image-dot ${index === 0 ? "active" : ""}" onclick="showProductImage(${index})"></div>`,
-      )
-      .join("")
-  } else {
-    imageDots.style.display = "none"
+    imageCounter.textContent = `${currentImageIndex + 1} / ${product.images.length}`
+
+    // Show/hide navigation arrows
+    if (product.images.length > 1) {
+      prevBtn.style.display = currentImageIndex > 0 ? "flex" : "none"
+      nextBtn.style.display = currentImageIndex < product.images.length - 1 ? "flex" : "none"
+    } else {
+      prevBtn.style.display = "none"
+      nextBtn.style.display = "none"
+    }
   }
+
+  // Navigation functions
+  function showPrevImage() {
+    if (currentImageIndex > 0) {
+      currentImageIndex--
+      updateImageDisplay()
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred("light")
+      }
+    }
+  }
+
+  function showNextImage() {
+    if (currentImageIndex < product.images.length - 1) {
+      currentImageIndex++
+      updateImageDisplay()
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred("light")
+      }
+    }
+  }
+
+  // Event listeners for navigation
+  prevBtn.onclick = showPrevImage
+  nextBtn.onclick = showNextImage
+
+  // Touch/swipe navigation
+  let startX = 0
+  let startY = 0
+
+  imagesSlider.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX
+    startY = e.touches[0].clientY
+  })
+
+  imagesSlider.addEventListener("touchend", (e) => {
+    if (!startX || !startY) return
+
+    const endX = e.changedTouches[0].clientX
+    const endY = e.changedTouches[0].clientY
+    const diffX = startX - endX
+    const diffY = startY - endY
+
+    // Check if horizontal swipe is more significant than vertical
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      if (diffX > 0) {
+        // Swipe left - next image
+        showNextImage()
+      } else {
+        // Swipe right - previous image
+        showPrevImage()
+      }
+    }
+
+    startX = 0
+    startY = 0
+  })
+
+  // Click on edges for navigation
+  imagesSlider.addEventListener("click", (e) => {
+    if (e.target.closest(".nav-arrow")) return
+
+    const rect = imagesSlider.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const containerWidth = rect.width
+
+    if (clickX < containerWidth * 0.3) {
+      showPrevImage()
+    } else if (clickX > containerWidth * 0.7) {
+      showNextImage()
+    }
+  })
+
+  // Initial display update
+  updateImageDisplay()
 
   // Setup product info
   document.getElementById("productDetailName").textContent = product.name
@@ -492,69 +581,8 @@ function showProductDetail(product) {
   showPage("product-detail")
 }
 
-function setupDetailImageNavigation(product) {
-  const imagesContainer = document.getElementById("productImages")
-  let currentDetailImageIndex = 0
-
-  // Touch events for swipe
-  let startX = 0
-  let startY = 0
-
-  imagesContainer.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX
-    startY = e.touches[0].clientY
-  })
-
-  imagesContainer.addEventListener("touchend", (e) => {
-    if (!startX || !startY) return
-
-    const endX = e.changedTouches[0].clientX
-    const endY = e.changedTouches[0].clientY
-    const diffX = startX - endX
-    const diffY = startY - endY
-
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-      if (diffX > 0 && currentDetailImageIndex < product.images.length - 1) {
-        currentDetailImageIndex++
-        showProductImage(currentDetailImageIndex)
-      } else if (diffX < 0 && currentDetailImageIndex > 0) {
-        currentDetailImageIndex--
-        showProductImage(currentDetailImageIndex)
-      }
-    }
-
-    startX = 0
-    startY = 0
-  })
-
-  // Click on edges
-  imagesContainer.addEventListener("click", (e) => {
-    const rect = imagesContainer.getBoundingClientRect()
-    const clickX = e.clientX - rect.left
-    const containerWidth = rect.width
-
-    if (clickX < containerWidth * 0.3 && currentDetailImageIndex > 0) {
-      currentDetailImageIndex--
-      showProductImage(currentDetailImageIndex)
-    } else if (clickX > containerWidth * 0.7 && currentDetailImageIndex < product.images.length - 1) {
-      currentDetailImageIndex++
-      showProductImage(currentDetailImageIndex)
-    }
-  })
-}
-
-function showProductImage(index) {
-  const images = document.querySelectorAll(".product-detail-image")
-  const dots = document.querySelectorAll("#imageDots .image-dot")
-
-  images.forEach((img, i) => {
-    img.classList.toggle("active", i === index)
-  })
-
-  dots.forEach((dot, i) => {
-    dot.classList.toggle("active", i === index)
-  })
-}
+// Удаляем старые функции setupDetailImageNavigation и showProductImage
+// Они больше не нужны, так как логика перенесена в showProductDetail
 
 function toggleProductInCartFromDetail(productId) {
   const product = findProductById(productId)
@@ -693,5 +721,4 @@ function removeFromCart(productId) {
 
 // Global functions for inline event handlers
 window.toggleProductInCart = toggleProductInCart
-window.showProductImage = showProductImage
 window.removeFromCart = removeFromCart

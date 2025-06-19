@@ -72,20 +72,33 @@
 
         <!-- Product Detail Page -->
         <div class="page" id="productDetailPage" style="display: none;">
-            <div class="product-detail">
-                <div class="product-images" id="productImages">
-                    <!-- Images will be loaded here -->
-                </div>
-                <div class="product-info">
-                    <h2 class="product-name" id="productDetailName"></h2>
-                    <p class="product-description" id="productDetailDescription"></p>
-                    <div class="product-price" id="productDetailPrice"></div>
-                    <button class="add-to-cart-btn" id="addToCartBtn">
-                        Добавить в корзину
-                    </button>
-                </div>
+    <div class="product-detail">
+        <div class="product-images-container" id="productImagesContainer">
+            <div class="product-images-slider" id="productImagesSlider">
+                <!-- Images will be loaded here -->
             </div>
+            <div class="image-counter" id="imageCounter">1 / 1</div>
+            <button class="nav-arrow nav-arrow-left" id="prevImageBtn" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="nav-arrow nav-arrow-right" id="nextImageBtn" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </div>
+        <div class="product-info">
+            <h2 class="product-name" id="productDetailName"></h2>
+            <p class="product-description" id="productDetailDescription"></p>
+            <div class="product-price" id="productDetailPrice"></div>
+            <button class="add-to-cart-btn" id="addToCartBtn">
+                Добавить в корзину
+            </button>
+        </div>
+    </div>
+</div>
 
         <!-- Cart Page -->
         <div class="page" id="cartPage" style="display: none;">
@@ -113,9 +126,6 @@
             <p>Ошибка загрузки. Попробуйте позже.</p>
         </div>
     </main>
-
-    <!-- Image Navigation Dots -->
-    <div class="image-dots" id="imageDots" style="display: none;"></div>
 
     <script src="script.js"></script>
 </body>
