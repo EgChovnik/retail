@@ -465,9 +465,13 @@ function showProductDetail(product) {
       img.src = "/placeholder.svg?height=500&width=400"
     }
 
-    // Add load event for debugging
+    // Add load event to adjust container height
     img.onload = () => {
       console.log(`Image loaded successfully: ${imageUrl}`)
+      if (index === 0) {
+        // Adjust slider height to match first image
+        imagesSlider.style.height = img.offsetHeight + "px"
+      }
     }
 
     imagesSlider.appendChild(img)
@@ -477,7 +481,19 @@ function showProductDetail(product) {
   function updateImageDisplay() {
     const images = imagesSlider.querySelectorAll(".product-detail-image")
     images.forEach((img, index) => {
-      img.classList.toggle("active", index === currentImageIndex)
+      if (index === currentImageIndex) {
+        img.classList.add("active")
+        img.style.position = "relative"
+        // Adjust container height to current image
+        setTimeout(() => {
+          if (img.offsetHeight > 0) {
+            imagesSlider.style.height = img.offsetHeight + "px"
+          }
+        }, 50)
+      } else {
+        img.classList.remove("active")
+        img.style.position = "absolute"
+      }
     })
 
     imageCounter.textContent = `${currentImageIndex + 1} / ${product.images.length}`

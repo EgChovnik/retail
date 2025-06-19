@@ -318,13 +318,14 @@ body {
   margin-bottom: 24px;
   border-radius: 16px;
   overflow: hidden;
-  background-color: var(--tg-theme-secondary-bg-color);
+  background-color: transparent;
 }
 
 .product-images-slider {
   position: relative;
   width: 100%;
-  height: 500px;
+  min-height: 400px;
+  height: auto;
   overflow: hidden;
 }
 
@@ -333,15 +334,18 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  min-height: 400px;
+  object-fit: contain;
+  object-position: center;
   opacity: 0;
   transition: opacity 0.3s ease;
-  background-color: var(--tg-theme-hint-color);
+  background-color: transparent;
 }
 
 .product-detail-image.active {
   opacity: 1;
+  position: relative;
 }
 
 .product-detail-image:not([src]),
@@ -351,6 +355,7 @@ body {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+  min-height: 400px;
 }
 
 .image-counter {
