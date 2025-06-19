@@ -3,377 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B A T N I Q U E ©</title>
+    <title>BATNIQUE - Стильная одежда для вас</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            padding: 16px;
-            min-height: 100vh;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--tg-theme-hint-color, #e0e0e0);
-        }
-
-        .logo {
-            height: 40px;
-            width: auto;
-            border-radius: 8px;
-            object-fit: contain;
-            margin-right: 16px;
-        }
-
-        .header-text h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 4px;
-        }
-
-        .header-text p {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #999999);
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--tg-theme-hint-color, #999999);
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .product-card {
-            background-color: var(--tg-theme-secondary-bg-color, #f8f8f8);
-            border: 2px solid transparent;
-            border-radius: 16px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-card.selected {
-            border-color: var(--tg-theme-button-color, #0088cc);
-            background-color: var(--tg-theme-section-bg-color, #e3f2fd);
-        }
-
-        .product-card.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background-color: var(--tg-theme-button-color, #0088cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            z-index: 2;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            background-color: var(--tg-theme-hint-color, #f0f0f0);
-        }
-
-        .product-info {
-            padding: 16px;
-        }
-
-        .product-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 8px;
-            line-height: 1.3;
-        }
-
-        .product-description {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #999999);
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .product-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--tg-theme-button-color, #0088cc);
-        }
-
-        .error {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--tg-theme-destructive-text-color, #ff3b30);
-        }
-
-        .bottom-spacer {
-            height: 100px;
-        }
-
-        @media (max-width: 480px) {
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .logo {
-                margin-right: 0;
-                margin-bottom: 12px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <img id="logo" class="logo" alt="Логотип магазина">
-        <div class="header-text">
-            <p>Стильная одежда для вас</p>
+    <!-- Header -->
+    <header class="header">
+        <button class="back-btn" id="backBtn" style="display: none;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="logo/logo.svg" alt="BATNIQUE" class="logo" id="logo">
+            </div>
+            <div class="header-text">
+                <p>Стильная одежда для вас</p>
+            </div>
         </div>
-    </div>
+        
+        <button class="cart-btn" id="cartBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+    </header>
 
-    <div id="loading" class="loading">
-        Загрузка товаров...
-    </div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Categories Page -->
+        <div class="page" id="categoriesPage">
+            <div class="categories-grid">
+                <div class="category-item" data-category="shirts">
+                    <span>рубашки</span>
+                </div>
+                <div class="category-item" data-category="tshirts">
+                    <span>футболки</span>
+                </div>
+                <div class="category-item" data-category="blouses">
+                    <span>блузы</span>
+                </div>
+                <div class="category-item" data-category="pants">
+                    <span>брюки</span>
+                </div>
+                <div class="category-item" data-category="shorts">
+                    <span>шорты</span>
+                </div>
+                <div class="category-item" data-category="jackets">
+                    <span>манжеты</span>
+                </div>
+                <div class="category-item" data-category="accessories">
+                    <span>аксессуары</span>
+                </div>
+            </div>
+        </div>
 
-    <div id="error" class="error" style="display: none;">
-        Ошибка загрузки товаров. Попробуйте позже.
-    </div>
+        <!-- Products Page -->
+        <div class="page" id="productsPage" style="display: none;">
+            <div class="category-title" id="categoryTitle"></div>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
 
-    <div class="products-grid" id="productsGrid" style="display: none;">
-        <!-- Товары будут добавлены через JavaScript -->
-    </div>
+        <!-- Product Detail Page -->
+        <div class="page" id="productDetailPage" style="display: none;">
+            <div class="product-detail">
+                <div class="product-images" id="productImages">
+                    <!-- Images will be loaded here -->
+                </div>
+                <div class="product-info">
+                    <h2 class="product-name" id="productDetailName"></h2>
+                    <p class="product-description" id="productDetailDescription"></p>
+                    <div class="product-price" id="productDetailPrice"></div>
+                    <button class="add-to-cart-btn" id="addToCartBtn">
+                        Добавить в корзину
+                    </button>
+                </div>
+            </div>
+        </div>
 
-    <div class="bottom-spacer"></div>
+        <!-- Loading -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Загрузка...</p>
+        </div>
 
-    <script>
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+        <!-- Error -->
+        <div class="error" id="error" style="display: none;">
+            <p>Ошибка загрузки. Попробуйте позже.</p>
+        </div>
+    </main>
 
-        // Конфигурация для прямой загрузки файлов
-        const CONFIG = {
-            // Базовый URL для GitHub Pages (замените на ваш)
-            baseUrl: 'https://egchovnik.github.io/retail',
-            
-            // Или можно использовать относительные пути если файлы в том же репозитории
-            // baseUrl: '.',
-            
-            // Список товаров (нужно указать вручную)
-            products: [
-                'item1',
-                'item2', 
-                'item3',
-                'item4',
-                'item5',
-                'item6',
-                'item7', 
-                'item8',
-                'item9',
-                'item10',
-                'item11'
-                // Добавьте названия папок ваших товаров
-            ]
-        };
+    <!-- Image Navigation Dots -->
+    <div class="image-dots" id="imageDots" style="display: none;"></div>
 
-        let selectedProducts = [];
-        let allProducts = [];
-
-        // Функция для загрузки текстового файла
-        async function loadTextFile(url) {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.text();
-        }
-
-        // Загрузка логотипа
-        function loadLogo() {
-            const logoUrl = `${CONFIG.baseUrl}/logo/logo.svg`;
-            const logoImg = document.getElementById('logo');
-            
-            logoImg.src = logoUrl;
-            logoImg.onerror = () => {
-                console.error('Ошибка загрузки логотипа');
-                logoImg.style.display = 'none';
-            };
-        }
-
-        // Загрузка товаров
-        async function loadProducts() {
-            try {
-                // Загружаем все товары параллельно
-                const productPromises = CONFIG.products.map(async (productId) => {
-                    try {
-                        const imageUrl = `${CONFIG.baseUrl}/clothes/${productId}/${productId}.jpg`;
-                        const descUrl = `${CONFIG.baseUrl}/clothes/${productId}/desc.txt`;
-                        
-                        // Загружаем описание
-                        const description = await loadTextFile(descUrl);
-                        
-                        // Парсим описание (формат: название|описание|цена)
-                        const [name, desc, priceStr] = description.split('|');
-                        const price = parseInt(priceStr) || 0;
-                        
-                        return {
-                            id: productId,
-                            name: name?.trim() || productId,
-                            description: desc?.trim() || 'Описание отсутствует',
-                            price: price,
-                            imageUrl: imageUrl
-                        };
-                    } catch (error) {
-                        console.error(`Ошибка загрузки товара ${productId}:`, error);
-                        return null;
-                    }
-                });
-                
-                const products = await Promise.all(productPromises);
-                allProducts = products.filter(product => product !== null);
-                
-                if (allProducts.length === 0) {
-                    throw new Error('Товары не найдены');
-                }
-                
-                renderProducts();
-                
-            } catch (error) {
-                console.error('Ошибка загрузки товаров:', error);
-                showError();
-            }
-        }
-
-        // Отображение товаров
-        function renderProducts() {
-            const grid = document.getElementById('productsGrid');
-            const loading = document.getElementById('loading');
-            
-            loading.style.display = 'none';
-            grid.style.display = 'grid';
-            
-            allProducts.forEach(product => {
-                const productElement = document.createElement('div');
-                productElement.className = 'product-card';
-                productElement.dataset.productId = product.id;
-                
-                productElement.innerHTML = `
-                    <img class="product-image" src="${product.imageUrl}" alt="${product.name}" loading="lazy">
-                    <div class="product-info">
-                        <div class="product-name">${product.name}</div>
-                        <div class="product-description">${product.description}</div>
-                        <div class="product-price">${product.price.toLocaleString('ru-RU')} руб.</div>
-                    </div>
-                `;
-                
-                // Обработка ошибки загрузки изображения
-                const img = productElement.querySelector('.product-image');
-                img.onerror = () => {
-                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';
-                };
-                
-                productElement.addEventListener('click', () => toggleProduct(product));
-                grid.appendChild(productElement);
-            });
-        }
-
-        // Показать ошибку
-        function showError() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-        }
-
-        // Переключение выбора товара
-        function toggleProduct(product) {
-            const productElement = document.querySelector(`[data-product-id="${product.id}"]`);
-            const isSelected = selectedProducts.some(p => p.id === product.id);
-            
-            if (isSelected) {
-                selectedProducts = selectedProducts.filter(p => p.id !== product.id);
-                productElement.classList.remove('selected');
-            } else {
-                selectedProducts.push(product);
-                productElement.classList.add('selected');
-            }
-            
-            updateMainButton();
-            
-            // Вибрация при выборе (если поддерживается)
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
-        }
-
-        // Обновление главной кнопки при изменении выбора
-        function updateMainButton() {
-            if (selectedProducts.length > 0) {
-                tg.MainButton.setText(`Оформить заказ (${selectedProducts.length})`);
-                tg.MainButton.show();
-            } else {
-                tg.MainButton.hide();
-            }
-        }
-
-        // Отправка данных боту
-        function sendDataToBot() {
-            if (selectedProducts.length === 0) return;
-            
-            const dataToSend = selectedProducts.map(product => ({
-                id: product.id,
-                name: product.name,
-                description: product.description,
-                price: product.price
-            }));
-            
-            tg.sendData(JSON.stringify(dataToSend));
-        }
-
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Настройка главной кнопки Telegram
-            tg.MainButton.setText('Оформить заказ');
-            tg.MainButton.onClick(sendDataToBot);
-            
-            // Загружаем логотип и товары
-            loadLogo();
-            await loadProducts();
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
