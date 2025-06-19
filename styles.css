@@ -228,10 +228,15 @@ body {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+  background-color: var(--tg-theme-hint-color);
 }
 
-.product-card:hover .product-image {
-  transform: scale(1.05);
+.product-image:not([src]),
+.product-image[src=""] {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='%23f0f0f0'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' dy='.3em' fill='%23999'%3eЗагрузка...%3c/text%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
 .favorite-btn {
@@ -327,10 +332,15 @@ body {
   object-fit: cover;
   border-radius: 16px;
   display: none;
+  background-color: var(--tg-theme-hint-color);
 }
 
-.product-detail-image.active {
-  display: block;
+.product-detail-image:not([src]),
+.product-detail-image[src=""] {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='%23f0f0f0'/%3e%3ctext x='50%25' y='50%25' font-size='16' text-anchor='middle' dy='.3em' fill='%23999'%3eЗагрузка изображения...%3c/text%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .image-dots {
@@ -442,4 +452,12 @@ body {
   .category-item span {
     font-size: 18px;
   }
+}
+
+/* Добавляем стили для случая когда товары не найдены */
+.no-products {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--tg-theme-hint-color);
+  font-size: 16px;
 }

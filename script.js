@@ -11,56 +11,23 @@ let currentCategory = ""
 let currentProduct = null
 const cart = []
 const products = {}
+// Обновляем объект categories, заменяя "jackets" на "cuffs"
 const categories = {
   shirts: "рубашки",
   tshirts: "футболки",
   blouses: "блузы",
   pants: "брюки",
   shorts: "шорты",
-  jackets: "манжеты",
+  cuffs: "манжеты",
   accessories: "аксессуары",
 }
 
-// Mock data for demonstration
-const mockProducts = {
-  shirts: [
-    {
-      id: "shirt1",
-      name: "Рубашка BTNQ",
-      description: "Зеленая широкая/белая/фиолетовая",
-      price: 8500,
-      images: [
-        "/placeholder.svg?height=400&width=300",
-        "/placeholder.svg?height=400&width=300",
-        "/placeholder.svg?height=400&width=300",
-      ],
-    },
-    {
-      id: "shirt2",
-      name: "Рубашка Classic",
-      description: "Белая/бордовая, зеленая, синяя вышивка",
-      price: 7500,
-      images: ["/placeholder.svg?height=400&width=300", "/placeholder.svg?height=400&width=300"],
-    },
-  ],
-  tshirts: [
-    {
-      id: "tshirt1",
-      name: "Футболка Basic",
-      description: "Хлопковая футболка базовых цветов",
-      price: 3500,
-      images: ["/placeholder.svg?height=400&width=300"],
-    },
-  ],
-  blouses: [
-    {
-      id: "blouse1",
-      name: "Блуза Elegant",
-      description: "Шелковая блуза для особых случаев",
-      price: 9500,
-      images: ["/placeholder.svg?height=400&width=300"],
-    },
-  ],
+// Удаляем mockProducts и добавляем конфигурацию для загрузки товаров
+const PRODUCTS_CONFIG = {
+  // Максимальное количество товаров для проверки в каждой категории
+  maxItemsToCheck: 20,
+  // Максимальное количество изображений для каждого товара
+  maxImagesPerItem: 10,
 }
 
 // DOM elements
@@ -154,30 +121,140 @@ function handleBackButton() {
   }
 }
 
+// Обновляем функцию showCategory для показа загрузки
 function showCategory(category) {
   currentCategory = category
   categoryTitle.textContent = categories[category] || category
 
   showLoading()
 
-  // Simulate loading delay
-  setTimeout(() => {
-    loadCategoryProducts(category)
-    hideLoading()
-    showPage("products")
-  }, 500)
+  // Загружаем товары категории
+  loadCategoryProducts(category)
+    .then(() => {
+      hideLoading()
+      showPage("products")
+    })
+    .catch((error) => {
+      console.error("Ошибка загрузки категории:", error)
+      hideLoading()
+      showError()
+    })
 }
 
-function loadCategoryProducts(category) {
-  const categoryProducts = mockProducts[category] || []
-  products[category] = categoryProducts
+// Заменяем функцию loadCategoryProducts полностью
+async function loadCategoryProducts(category) {
+  try {
+    const categoryProducts = await loadProductsFromDirectory(category)
+    products[category] = categoryProducts
 
-  productsGrid.innerHTML = ""
+    productsGrid.innerHTML = ""
 
-  categoryProducts.forEach((product) => {
-    const productCard = createProductCard(product)
-    productsGrid.appendChild(productCard)
-  })
+    if (categoryProducts.length === 0) {
+      productsGrid.innerHTML = '<div class="no-products">Товары не найдены</div>'
+      return
+    }
+
+    categoryProducts.forEach((product) => {
+      const productCard = createProductCard(product)
+      productsGrid.appendChild(productCard)
+    })
+  } catch (error) {
+    console.error("Ошибка загрузки товаров категории:", error)
+    showError()
+  }
+}
+
+// Добавляем новую функцию для загрузки товаров из директории
+async function loadProductsFromDirectory(category) {
+  const products = []
+
+  // Проверяем товары от item1 до maxItemsToCheck
+  for (let i = 1; i <= PRODUCTS_CONFIG.maxItemsToCheck; i++) {
+    const itemId = `item${i}`
+
+    try {
+      // Пытаемся загрузить описание товара
+      const product = await loadSingleProduct(category, itemId)
+      if (product) {
+        products.push(product)
+      }
+    } catch (error) {
+      // Если товар не найден, прекращаем поиск в этой категории
+      console.log(`Товар ${itemId} в категории ${category} не найден, завершаем поиск`)
+      break
+    }
+  }
+
+  return products
+}
+
+// Добавляем функцию для загрузки одного товара
+async function loadSingleProduct(category, itemId) {
+  try {
+    // Загружаем описание товара
+    const descriptionUrl = `clothes/${category}/${itemId}/${itemId}.txt`
+    const descriptionResponse = await fetch(descriptionUrl)
+
+    if (!descriptionResponse.ok) {
+      throw new Error(`Описание товара не найдено: ${descriptionUrl}`)
+    }
+
+    const descriptionText = await descriptionResponse.text()
+    const [name, description, priceText] = descriptionText.trim().split("|")
+
+    if (!name || !description || !priceText) {
+      throw new Error(`Неверный формат описания для ${itemId}`)
+    }
+
+    // Извлекаем цену из текста (убираем "руб." и парсим число)
+    const price = Number.parseInt(priceText.replace(/[^\d]/g, "")) || 0
+
+    // Загружаем изображения товара
+    const images = await loadProductImages(category, itemId)
+
+    if (images.length === 0) {
+      throw new Error(`Изображения не найдены для ${itemId}`)
+    }
+
+    return {
+      id: `${category}_${itemId}`,
+      name: name.trim(),
+      description: description.trim(),
+      price: price,
+      images: images,
+      category: category,
+      itemId: itemId,
+    }
+  } catch (error) {
+    console.error(`Ошибка загрузки товара ${itemId}:`, error)
+    return null
+  }
+}
+
+// Добавляем функцию для загрузки изображений товара
+async function loadProductImages(category, itemId) {
+  const images = []
+
+  // Проверяем изображения от _1.jpg до _maxImagesPerItem.jpg
+  for (let i = 1; i <= PRODUCTS_CONFIG.maxImagesPerItem; i++) {
+    const imageUrl = `clothes/${category}/${itemId}/${itemId}_${i}.jpg`
+
+    try {
+      // Проверяем существование изображения
+      const response = await fetch(imageUrl, { method: "HEAD" })
+      if (response.ok) {
+        images.push(imageUrl)
+      } else {
+        // Если изображение не найдено, прекращаем поиск
+        break
+      }
+    } catch (error) {
+      // Если ошибка при проверке, прекращаем поиск
+      break
+    }
+  }
+
+  return images
 }
 
 function createProductCard(product) {
